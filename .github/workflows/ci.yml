@@ -34,7 +34,7 @@ jobs:
           FAKE_HOME=$(mktemp -d)
           python3 install.py --yes --home "$FAKE_HOME"
           test "$(find "$FAKE_HOME" -type l | wc -l)" -eq 0
-          "$FAKE_HOME/.local/bin/skillfind" "redact secrets" | grep -q pii-scrub
+          HOME="$FAKE_HOME" "$FAKE_HOME/.local/bin/skillfind" "redact secrets" | grep -q pii-scrub
           python3 install.py --yes --home "$FAKE_HOME" | grep -q "already up to date"
 
       - name: Secret / PII scan
@@ -56,5 +56,5 @@ jobs:
           mkdir -p "$FAKE_HOME"
           python install.py --yes --home "$FAKE_HOME"
           test "$(find "$FAKE_HOME" -type l | wc -l)" -eq 0
-          python "$FAKE_HOME/.local/bin/skillfind" "redact secrets" | grep -q pii-scrub
+          HOME="$FAKE_HOME" USERPROFILE="$FAKE_HOME" python "$FAKE_HOME/.local/bin/skillfind" "redact secrets" | grep -q pii-scrub
           python install.py --yes --home "$FAKE_HOME" | grep -q "already up to date"
