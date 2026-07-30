@@ -1,0 +1,6 @@
+.DS_Store
+__pycache__/
+*.pyc
+discovery/skills-catalog/index.json
+discovery/skills-catalog/rules-index.json
+discovery/skills-catalog/CATALOG.md

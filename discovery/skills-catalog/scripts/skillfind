@@ -1,0 +1,295 @@
+#!/usr/bin/env python3
+"""skillfind — keyword search over the skills/rules catalog.
+
+Usage:
+  skillfind "<intent words>" [--source agents|claude|cursor|plugin] [--category <slug>]
+                             [-n N] [--all-status]
+  skillfind --get <name>        # frontmatter + path of one skill (always full)
+  skillfind --category <slug>   # browse a category (no query needed)
+  skillfind --rules "<topic>"   # search rules instead of skills
+  skillfind --always            # list always-on rules (per-session token cost)
+  skillfind --stats             # counts by category/source
+  skillfind --rebuild           # force index rebuild
+  --json                        # machine-readable output (search/--get/rules)
+  --full                        # whole record (desc/triggers/...) instead of
+                                 # the default hint (name+path+category+score) —
+                                 # read the ONE SKILL.md via --get instead of
+                                 # paying for N descriptions here.
+
+Invoked as `rulesfind`, behaves as `skillfind --rules`.
+Auto-rebuilds when source dirs changed since last build (top-level mtime check).
+Stdlib only; scoring = name x3, triggers x2, desc x1, +hot/warm boost.
+Hint format mirrors skillserve's HTTP API (/search, /rules default to hints;
+&full=1 for the whole record) so CLI and MCP agents see the same shape.
+"""
+import json
+import os
+import re
+import subprocess
+import sys
+
+HOME = os.path.expanduser("~")
+CATALOG_DIR = os.path.join(HOME, ".agents", "skills-catalog")
+INDEX_PATH = os.path.join(CATALOG_DIR, "index.json")
+RULES_INDEX_PATH = os.path.join(CATALOG_DIR, "rules-index.json")
+BUILDER = os.path.join(CATALOG_DIR, "scripts", "build-index.py")
+WATCH_ROOTS = [
+    os.path.join(HOME, ".agents"),
+    os.path.join(HOME, ".claude", "skills"),
+    os.path.join(HOME, ".cursor", "skills"),
+    os.path.join(HOME, ".skills-archive"),
+    os.path.join(HOME, ".claude", "plugins", "cache"),
+]
+
+
+def die(msg, code=1):
+    print(f"skillfind: {msg}", file=sys.stderr)
+    sys.exit(code)
+
+
+def newest_source_mtime():
+    newest = 0.0
+    for root in WATCH_ROOTS:
+        if not os.path.isdir(root):
+            continue
+        try:
+            newest = max(newest, os.stat(root).st_mtime)
+            with os.scandir(root) as it:
+                for entry in it:
+                    newest = max(newest, entry.stat(follow_symlinks=False).st_mtime)
+        except OSError:
+            continue
+    return newest
+
+
+def rebuild():
+    result = subprocess.run([sys.executable, BUILDER, "--quiet"], capture_output=True, text=True)
+    if result.returncode != 0:
+        die(f"index rebuild failed:\n{result.stderr.strip()}")
+
+
+def load_index(force_rebuild=False):
+    stale = force_rebuild or not os.path.isfile(INDEX_PATH)
+    if not stale:
+        try:
+            with open(INDEX_PATH, encoding="utf-8") as f:
+                data = json.load(f)
+            if newest_source_mtime() > data["meta"]["built_at"]:
+                stale = True
+        except (json.JSONDecodeError, KeyError, OSError):
+            stale = True
+    if stale:
+        print("(index stale — rebuilding)", file=sys.stderr)
+        rebuild()
+        with open(INDEX_PATH, encoding="utf-8") as f:
+            data = json.load(f)
+    with open(RULES_INDEX_PATH, encoding="utf-8") as f:
+        rules = json.load(f)
+    return data, rules
+
+
+def word_hit(term, text):
+    """Word-boundary match so 'down' does not hit 'markdown'."""
+    return re.search(rf"(?<![a-z0-9]){re.escape(term)}", text) is not None
+
+
+def score(skill, terms):
+    total = 0
+    name = skill["name"].lower()
+    triggers = " ".join(skill.get("triggers", [])).lower()
+    desc = skill.get("desc", "").lower()
+    for t in terms:
+        if word_hit(t, name):
+            total += 3
+        if word_hit(t, triggers):
+            total += 2
+        if word_hit(t, desc):
+            total += 1
+    if total == 0:
+        return 0
+    total += {"hot": 2, "warm": 1}.get(skill.get("priority"), 0)
+    return total
+
+
+def fmt_skill(s):
+    src = "+".join(s["sources"])
+    tag = f"{src}" + (f":{s['plugin']}" if "plugin" in s else "")
+    if s["status"] == "archived":
+        tag += ":ARCHIVED"
+    line1 = f"{s['name']:<34} {s['category']:<17} {tag}"
+    line2 = f"  {s.get('desc', '')[:110]}"
+    line3 = f"  {s['path']}"
+    return "\n".join([line1, line2, line3])
+
+
+def fmt_rule(r):
+    flag = "ALWAYS-ON" if r["always_on"] else "on-demand"
+    return f"{r['name']:<28} {r['kind']:<20} {flag}\n  {r.get('desc', '')[:110]}\n  {r['path']}"
+
+
+def hint_skill(s, sc=None):
+    """Compact {name,path,category,score} — mirrors skillserve /search default."""
+    hint = {"name": s["name"], "path": s["path"], "category": s["category"]}
+    if sc is not None:
+        hint["score"] = sc
+    return hint
+
+
+def hint_rule(r, sc=None):
+    """Compact {name,path,score} — mirrors skillserve /rules default."""
+    hint = {"name": r["name"], "path": r["path"]}
+    if sc is not None:
+        hint["score"] = sc
+    return hint
+
+
+def fmt_skill_hint(s, sc=None):
+    tail = f"   [score {sc}]" if sc is not None else ""
+    return f"{s['name']:<34} {s['category']:<17} {s['path']}{tail}"
+
+
+def fmt_rule_hint(r, sc=None):
+    tail = f"   [score {sc}]" if sc is not None else ""
+    return f"{r['name']:<28} {r['path']}{tail}"
+
+
+def main():
+    args = sys.argv[1:]
+    as_rules = os.path.basename(sys.argv[0]) == "rulesfind"
+
+    def take_flag(flag):
+        if flag in args:
+            args.remove(flag)
+            return True
+        return False
+
+    def take_opt(opt):
+        if opt in args:
+            i = args.index(opt)
+            if i + 1 >= len(args):
+                die(f"{opt} needs a value")
+            val = args[i + 1]
+            del args[i:i + 2]
+            return val
+        return None
+
+    if take_flag("--help") or take_flag("-h"):
+        print(__doc__.strip())
+        return
+    force = take_flag("--rebuild")
+    as_json = take_flag("--json")
+    full = take_flag("--full")
+    as_rules = take_flag("--rules") or as_rules
+    always_only = take_flag("--always")
+    stats = take_flag("--stats")
+    all_status = take_flag("--all-status")
+    get_name = take_opt("--get")
+    source = take_opt("--source")
+    category = take_opt("--category")
+    limit_raw = take_opt("-n") or "5"
+    try:
+        limit = max(1, min(50, int(limit_raw)))
+    except ValueError:
+        die(f"-n expects an integer, got {limit_raw!r}")
+
+    data, rules_data = load_index(force)
+    skills = data["skills"]
+    rules = rules_data["rules"]
+
+    if force and not (args or get_name or stats or always_only or category):
+        print(f"rebuilt: {data['meta']['counts']}")
+        return
+
+    if stats:
+        counts = {}
+        for s in skills:
+            counts.setdefault(s["category"], [0, 0])
+            counts[s["category"]][0] += 1
+            if s["status"] == "active":
+                counts[s["category"]][1] += 1
+        print(f"built: {data['meta']['built_at_human']}  totals: {data['meta']['counts']}")
+        for cat in sorted(counts):
+            total, active = counts[cat]
+            print(f"  {cat:<18} {total:>4} total  {active:>4} active")
+        print(f"rules: {len(rules)} ({sum(1 for r in rules if r['always_on'])} always-on)")
+        return
+
+    if always_only:
+        hits = [r for r in rules if r["always_on"]]
+        if as_json:
+            print(json.dumps(hits if full else [hint_rule(r) for r in hits],
+                              separators=(",", ":")))
+            return
+        for r in hits:
+            print((fmt_rule(r) if full else fmt_rule_hint(r)) + "\n")
+        return
+
+    if get_name:
+        matches = [s for s in skills if s["name"] == get_name or s["dir"] == get_name]
+        if not matches:
+            die(f"no skill named {get_name!r} — try: skillfind \"{get_name}\"")
+        if as_json:
+            print(json.dumps(matches, indent=1))
+            return
+        for s in matches:
+            print(fmt_skill(s))
+            print(f"  triggers: {', '.join(s['triggers'])}\n")
+        return
+
+    terms = [t.lower() for a in args for t in a.split() if t.strip()]
+    if as_rules:
+        if not terms:
+            if as_json:
+                print(json.dumps(rules if full else [hint_rule(r) for r in rules],
+                                  separators=(",", ":")))
+                return
+            for r in rules:
+                print((fmt_rule(r) if full else fmt_rule_hint(r)) + "\n")
+            return
+        hits = [(sum(2 if t in r["name"].lower() else 1 if t in r.get("desc", "").lower() else 0
+                     for t in terms), r) for r in rules]
+        hits = sorted([h for h in hits if h[0] > 0], key=lambda h: -h[0])[:limit]
+        if not hits:
+            die("no rule matches", 2)
+        if as_json:
+            results = ([dict(r, score=sc) for sc, r in hits] if full
+                       else [hint_rule(r, sc) for sc, r in hits])
+            print(json.dumps(results, separators=(",", ":")))
+            return
+        for sc, r in hits:
+            print((fmt_rule(r) if full else fmt_rule_hint(r, sc)) + "\n")
+        return
+
+    pool = skills
+    if source:
+        pool = [s for s in pool if source in s["sources"]]
+    if category:
+        pool = [s for s in pool if s["category"] == category]
+    if not terms:
+        if not category and not source:
+            die("give a query, --category, --get, --stats or --always (see --help)")
+        pool = [s for s in pool if all_status or s["status"] == "active"]
+        browse = sorted(pool, key=lambda s: (s["priority"] != "hot", s["name"]))[:max(limit, 20)]
+        if as_json:
+            print(json.dumps(browse if full else [hint_skill(s) for s in browse],
+                              separators=(",", ":")))
+            return
+        for s in browse:
+            print((fmt_skill(s) if full else fmt_skill_hint(s)) + "\n")
+        return
+
+    scored = sorted(((score(s, terms), s) for s in pool), key=lambda x: -x[0])
+    top = [(sc, s) for sc, s in scored if sc > 0][:limit]
+    if not top:
+        die("no matches — broaden query or try --category", 2)
+    if as_json:
+        results = ([dict(s, score=sc) for sc, s in top] if full
+                   else [hint_skill(s, sc) for sc, s in top])
+        print(json.dumps(results, separators=(",", ":")))
+        return
+    for sc, s in top:
+        print((fmt_skill(s) if full else fmt_skill_hint(s, sc)) + "\n")
+
+
+if __name__ == "__main__":
+    main()

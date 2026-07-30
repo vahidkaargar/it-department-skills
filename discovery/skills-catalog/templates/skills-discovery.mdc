@@ -1,0 +1,12 @@
+---
+description: Skill discovery — search the catalog instead of loading skill lists
+alwaysApply: true
+---
+
+# Skill discovery
+
+- NEVER enumerate or load full skill lists into context (914 indexed on this Mac).
+- Need a capability? Run `skillfind "<intent>"` in terminal → read the ONE top SKILL.md path it returns.
+- Rules lookup: `rulesfind "<topic>"`; audit always-on token cost with `rulesfind --always`.
+- Hot set (ops + skill authoring) is pre-listed in `~/.agents/skills-catalog/CATALOG.md` — read that file, not source dirs.
+- Archived skills (`~/.skills-archive/`) are searchable and readable by path; restore with `mv ~/.skills-archive/<name> ~/.claude/skills/<name>`.
