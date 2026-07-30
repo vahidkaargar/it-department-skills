@@ -73,9 +73,9 @@ Four dimensions, 25% each: **Documentation** (depth, examples, references), **Co
 - name: "validate-changed-skills"
   run: |
     for skill in $changed_skills; do
-      python3 engineering/skills/skill-tester/scripts/skill_validator.py "$skill" --json
-      python3 engineering/skills/skill-tester/scripts/script_tester.py "$skill"
-      python3 engineering/skills/skill-tester/scripts/quality_scorer.py "$skill" --minimum-score 75
+      python3 skills/skill-tester/scripts/skill_validator.py "$skill" --json
+      python3 skills/skill-tester/scripts/script_tester.py "$skill"
+      python3 skills/skill-tester/scripts/quality_scorer.py "$skill" --minimum-score 75
     done
 ```
 
