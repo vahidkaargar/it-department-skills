@@ -1,5 +1,7 @@
 # it-department-skills
 
+[![CI](https://github.com/vahidkaargar/it-department-skills/actions/workflows/ci.yml/badge.svg)](https://github.com/vahidkaargar/it-department-skills/actions/workflows/ci.yml)
+
 Battle-tested global rules, portable skills, and a token-efficient skill-discovery
 system for AI coding agents (Claude Code, Cursor, Codex, Copilot — anything with a
 shell). Extracted from a production IT/agent stack and sanitized for public use.
