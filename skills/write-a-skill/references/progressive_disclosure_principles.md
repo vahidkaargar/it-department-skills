@@ -62,12 +62,12 @@ Operational consequence: keep `references/` flat. No nested subfolders.
 
 ## When 100 Is Too Restrictive
 
-For skills that wrap or extend other skills (like this `write-a-skill` itself, which preserves Matt's full original content + adds wrapper sections), the 100-line ceiling becomes an artifact of attribution rather than over-conditioning. Two options:
+For skills that wrap or extend other skills (adding wrapper sections on top of preserved original content), the ceiling can look artificially tight. Two options:
 
-- Accept the line-count WARN as documentation of intentional preservation
-- Move attribution/wrapper notes to `README.md` (which lives outside the SKILL.md ceiling)
+- Move the wrapped/duplicated detail into `references/` and leave a pointer (real progressive disclosure — preferred)
+- Accept the line-count WARN as documentation of intentional preservation, only if the content genuinely can't be split (e.g. all of it is equally load-bearing every time)
 
-This `write-a-skill` skill demonstrates option 1.
+This `write-a-skill` skill itself demonstrates option 1: `Description Requirements` and `SKILL.md Template` moved to `references/`.
 
 ## When This Reference Doesn't Help
 

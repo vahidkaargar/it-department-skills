@@ -48,7 +48,7 @@ Matt's write-a-skill is a tight, principled, ~93-line skill — perfect as-is fo
 2. **Forcing-question interrogation** (the cs-skill-author persona) — adapts Matt's "review with user" phase to the cs-* persona pattern used elsewhere in this repo.
 3. **Citation-backed references** — Matt links to his own materials; the wrapper adds 5+ authoritative external sources per reference (Anthropic skill docs + community precedent + research) for newcomers learning the pattern.
 
-This is the [hybrid voice approach](../SKILL.md): Matt's words for the principles, our additions for the tooling.
+This is a hybrid voice approach: Matt's words for the principles, our additions for the tooling.
 
 ## Attribution
 

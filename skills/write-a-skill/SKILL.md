@@ -45,56 +45,11 @@ skill-name/
 
 ## SKILL.md Template
 
-```md
----
-name: skill-name
-description: Brief description of capability. Use when [specific triggers].
----
-
-# Skill Name
-
-## Quick start
-
-[Minimal working example]
-
-## Workflows
-
-[Step-by-step processes with checklists for complex tasks]
-
-## Advanced features
-
-[Link to separate files: See [REFERENCE.md](REFERENCE.md)]
-```
+Copy-paste starting point: [references/skill_md_template.md](references/skill_md_template.md).
 
 ## Description Requirements
 
-The description is **the only thing your agent sees** when deciding which skill to load. It's surfaced in the system prompt alongside all other installed skills. Your agent reads these descriptions and picks the relevant skill based on the user's request.
-
-**Goal**: Give your agent just enough info to know:
-
-1. What capability this skill provides
-2. When/why to trigger it (specific keywords, contexts, file types)
-
-**Format**:
-
-- Max 1024 chars
-- Write in third person
-- First sentence: what it does
-- Second sentence: "Use when [specific triggers]"
-
-**Good example**:
-
-```
-Extract text and tables from PDF files, fill forms, merge documents. Use when working with PDF files or when user mentions PDFs, forms, or document extraction.
-```
-
-**Bad example**:
-
-```
-Helps with documents.
-```
-
-The bad example gives your agent no way to distinguish this from other document skills.
+The description is **the only thing your agent sees** when deciding which skill to load — see [references/description_design_patterns.md](references/description_design_patterns.md) for the four format rules and good/bad examples.
 
 ## When to Add Scripts
 
@@ -108,11 +63,7 @@ Scripts save tokens and improve reliability vs generated code.
 
 ## When to Split Files
 
-Split into separate files when:
-
-- SKILL.md exceeds 100 lines
-- Content has distinct domains (finance vs sales schemas)
-- Advanced features are rarely needed
+See [references/progressive_disclosure_principles.md](references/progressive_disclosure_principles.md) for the 100-line ceiling, the one-level-deep rule, and anti-patterns to avoid.
 
 ## Review Checklist
 
@@ -135,7 +86,4 @@ python3 ~/.claude/skills/write-a-skill/scripts/skill_review_checklist_runner.py 
 
 See [references/companion_tooling.md](references/companion_tooling.md) for the tool catalogue, cs-skill-author persona agent, and `/cs:write-a-skill` slash command.
 
----
-
-**Version:** 1.0.0
-**Derived:** Matt Pocock (MIT) + this repo's wrapper
+**Version:** 1.0.0 — derived from Matt Pocock (MIT) + this repo's wrapper
