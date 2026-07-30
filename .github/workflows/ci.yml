@@ -26,6 +26,11 @@ jobs:
       - name: Skill security auditor tests
         run: python3 skills/skill-security-auditor/tests/test_scan_file_prompt_injection.py
 
+      - name: Skills-catalog tests (build-index.py, skillfind)
+        run: |
+          python3 discovery/skills-catalog/tests/test_build_index.py
+          python3 discovery/skills-catalog/tests/test_skillfind.py
+
       - name: Duplicate code check (jscpd)
         run: npx --yes jscpd@5.0.14 --config .jscpd.json .
 
