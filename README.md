@@ -65,7 +65,7 @@ machines by `install.py`):
 
 | Path | What |
 |---|---|
-| `CLAUDE.md` / `.rtk/filters.toml` | [rtk](https://github.com/rtk-ai/rtk) (Rust Token Killer) instructions + project filters, via `rtk init` |
+| `CLAUDE.md` / `.rtk/filters.toml` | [rtk](https://www.rtk-ai.app/) (Rust Token Killer) instructions + project filters, via `rtk init` |
 | `.jscpd.json` | jscpd duplication-check config, enforced in CI (`.github/workflows/ci.yml`) |
 
 ## Design principles
