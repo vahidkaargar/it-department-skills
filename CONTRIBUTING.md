@@ -7,4 +7,6 @@
   and reviewers will reject anything matching common secret/PII patterns (see `skills/pii-scrub`).
 - Rules changes (`rules/AGENT_RULES.md`): keep it lean; long examples go to
   `templates/.ai/examples/` and are referenced by path.
-- Shell scripts must pass `bash -n` and stay POSIX-friendly bash (macOS + Linux).
+- Installer/personalizer/hook scripts are Python 3, stdlib-only, and must run
+  unmodified on macOS, Linux, and Windows — no `os.system`/shell-outs for
+  filesystem work, use `pathlib`/`shutil` instead. Must pass `python3 -m py_compile`.

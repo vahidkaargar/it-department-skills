@@ -15,7 +15,6 @@ Exit codes:
 
 import argparse
 import json
-import os
 import re
 import stat
 import subprocess
@@ -647,7 +646,7 @@ def scan_file_code(filepath: Path, report: AuditReport):
     if suppressed_lines:
         report.findings.append(
             Finding(
-                severity="HIGH",
+                severity=Severity.HIGH,
                 category="suppression-directive",
                 file=str(filepath),
                 line=suppressed_lines[0],
@@ -667,9 +666,11 @@ def scan_file_prompt_injection(filepath: Path, report: AuditReport):
 
     lines = content.split("\n")
 
+    suppressed_lines = []
     for i, line in enumerate(lines, 1):
         # Honor explicit suppression directive (markdown can use HTML comment)
         if "noqa: SEC-AUDITOR" in line or "auditor:ignore-line" in line:
+            suppressed_lines.append(i)
             continue
         for pat in PROMPT_INJECTION_PATTERNS:
             if re.search(pat["regex"], line):
@@ -687,7 +688,7 @@ def scan_file_prompt_injection(filepath: Path, report: AuditReport):
     if suppressed_lines:
         report.findings.append(
             Finding(
-                severity="HIGH",
+                severity=Severity.HIGH,
                 category="suppression-directive",
                 file=str(filepath),
                 line=suppressed_lines[0],

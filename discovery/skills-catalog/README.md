@@ -16,7 +16,7 @@ scripts/skillfind         search CLI (also installed as rulesfind — same scrip
 scripts/skillserve.py     optional localhost HTTP API (stdlib python3)
 ```
 
-CLI on PATH: install.sh copies `scripts/skillfind` to `~/.local/bin` under both
+CLI on PATH: install.py copies `scripts/skillfind` to `~/.local/bin` under both
 names; invoked as `rulesfind` it behaves as `skillfind --rules`.
 
 ## Use
@@ -43,7 +43,7 @@ Index auto-rebuilds when skill roots change (mtime check on every search).
 
 ## Enforcement
 
-`hooks/skills-discovery-guard.sh` (PreToolUse, Claude Code) denies raw
+`hooks/skills-discovery-guard.py` (PreToolUse, Claude Code) denies raw
 `ls`/`find`/`tree` enumeration of skill dirs — search-first is mandatory,
 not advisory. Catalog tooling itself is allow-listed.
 

@@ -22,10 +22,14 @@ Why "ultra performance"? Three levers:
 ```bash
 git clone https://github.com/vahidkaargar/it-department-skills.git
 cd it-department-skills
-./install.sh --dry-run   # see what it would do
-./install.sh             # copies into ~/.ai, ~/.claude, ~/.agents (backs up existing)
-./personalize.sh         # fill in your machine/stack, toggle output modes
+python3 install.py --dry-run   # see what it would do
+python3 install.py             # copies into ~/.ai, ~/.claude, ~/.agents (backs up existing)
+python3 personalize.py         # fill in your machine/stack, toggle output modes
 ```
+
+Installer and personalizer are pure-stdlib Python 3 — no bash/perl/shellcheck
+required, so this works identically on macOS, Linux, and Windows (use `python`
+instead of `python3` on Windows if that's how it's aliased on your machine).
 
 Then in any agent session:
 
@@ -50,10 +54,19 @@ rulesfind "output mode"               # -> absolute-mode spec
 | `skills/blindspot-check/` | Red-team a big decision against 95 cognitive biases before committing |
 | `skills/thiel-style-converter/` | Rewrite arguments in measured Zero-to-One strategic style (anti-fabrication built in) |
 | `skills/positioning-with-ekram/` | Product/category positioning operator — diagnose before copy, eval-tested |
+| `skills/jscpd/` | Copy-paste detector reference — run jscpd, read its AI-reporter clone output |
 | `discovery/skills-catalog/` | `skillfind`/`rulesfind` CLI, index builder, optional localhost HTTP API |
-| `hooks/skills-discovery-guard.sh` | PreToolUse hook: denies `ls`/`find` on skill dirs (opt-in) |
+| `hooks/skills-discovery-guard.py` | PreToolUse hook: denies `ls`/`find` on skill dirs (opt-in) |
 | `templates/.ai/` | Starter `.ai/context.md` + examples layout for the rules' context protocol |
-| `install.sh` / `personalize.sh` | Idempotent installer (copy + backup) and interactive personalizer |
+| `install.py` / `personalize.py` | Idempotent installer (copy + backup) and interactive personalizer — pure stdlib, cross-platform |
+
+This repo also dogfoods its own tooling for contributors (not copied to client
+machines by `install.py`):
+
+| Path | What |
+|---|---|
+| `CLAUDE.md` / `.rtk/filters.toml` | [rtk](https://github.com/rtk-ai/rtk) (Rust Token Killer) instructions + project filters, via `rtk init` |
+| `.jscpd.json` | jscpd duplication-check config, enforced in CI (`.github/workflows/ci.yml`) |
 
 ## Design principles
 
@@ -64,7 +77,7 @@ rulesfind "output mode"               # -> absolute-mode spec
 - **Standalone copy installs.** No symlinks — the installer copies everything
   into `~/.ai`, `~/.claude`, `~/.agents`, so it works identically on any fresh
   machine and the clone can be deleted afterwards. Update by `git pull` +
-  re-running `./install.sh` (unchanged files are skipped, local edits backed up).
+  re-running `python3 install.py` (unchanged files are skipped, local edits backed up).
 - **Nothing edits your settings silently.** The guard hook is opt-in and the
   installer prints the settings.json snippet instead of merging it.
 
@@ -82,6 +95,8 @@ Plain copies — remove them and restore from the printed backup dir:
   `skills/positioning-with-ekram` by
   [Soheil Momeni](https://github.com/soheilmomeniii) (MIT) — vendored with
   upstream LICENSE files; security-audited before inclusion.
+- `skills/jscpd` usage doc adapted from the [jscpd](https://github.com/kucherenko/jscpd)
+  project's own CLI reference (MIT).
 
 ## License
 

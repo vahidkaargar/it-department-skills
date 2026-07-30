@@ -50,6 +50,12 @@ Consume the JSON: validator emits `overall_score`, `compliance_level`, per-check
 ### quality_scorer.py
 Four dimensions, 25% each: **Documentation** (depth, examples, references), **Code Quality** (complexity, error handling, output consistency), **Completeness** (required dirs, sample data, expected outputs), **Usability** (help text, example clarity). Outputs 0-100 + A-F grade + tier recommendation.
 
+> **Known limitation — biased toward scaffolding/LOC.** Rewards more LOC and
+> more subdirs (`assets/`, `references/`, `expected_outputs/`, `README.md`) as
+> "quality," so lean skills (`pii-scrub`, `remember`, `jscpd`) score C/F despite
+> being complete — contradicts write-a-skill's leanness doctrine (scope note
+> above). Read the dimension breakdown before trusting a low score here.
+
 ## Tier Classification
 
 | Tier | SKILL.md | Scripts | CLI surface |

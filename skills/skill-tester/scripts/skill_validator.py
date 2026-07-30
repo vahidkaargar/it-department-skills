@@ -37,7 +37,7 @@ except ImportError:
     yaml = _YamlStub()
 import datetime as dt
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
+from typing import List, Any, Optional
 
 
 class ValidationError(Exception):

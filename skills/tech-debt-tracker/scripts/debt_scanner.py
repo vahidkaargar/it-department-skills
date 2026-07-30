@@ -21,7 +21,7 @@ import sys
 from collections import defaultdict, Counter
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Set, Tuple
+from typing import Dict, List, Any, Optional
 
 
 class DebtScanner:

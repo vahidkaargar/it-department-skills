@@ -16,12 +16,12 @@ import json
 import argparse
 import sys
 import os
-from collections import defaultdict, Counter
-from datetime import datetime, timedelta
+from collections import Counter
+from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Tuple
 from dataclasses import dataclass, asdict
-from statistics import mean, median, stdev
+from statistics import mean
 import re
 
 
@@ -191,7 +191,7 @@ class DebtDashboard:
         try:
             mtime = os.path.getmtime(file_path)
             return datetime.fromtimestamp(mtime).isoformat()
-        except:
+        except Exception:
             return datetime.now().isoformat()
     
     def generate_dashboard(self, period: str = "monthly") -> Dict[str, Any]:
@@ -531,10 +531,6 @@ class DebtDashboard:
         for i in range(1, len(self.processed_snapshots)):
             current = self.processed_snapshots[i]
             previous = self.processed_snapshots[i-1]
-            
-            # Track debt by unique identifiers when possible
-            current_debt_ids = set()
-            previous_debt_ids = set()
             
             current_effort = current["total_effort_estimate"]
             previous_effort = previous["total_effort_estimate"]

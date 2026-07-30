@@ -426,9 +426,9 @@ class SecurityScorer:
         Score command injection prevention.
         
         Evaluates scripts for:
-        - os.system(), os.popen() usage
+        - os.system(), os.popen() usage  # noqa: SEC-AUDITOR — docs, not a call site
         - subprocess with shell=True
-        - eval(), exec() usage
+        - eval(), exec() usage  # noqa: SEC-AUDITOR — docs, not a call site
         - asyncio.create_subprocess_shell()
         - pexpect.spawn()
         - Safe patterns (shlex.quote, shell=False)

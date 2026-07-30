@@ -7,7 +7,7 @@ skill directories (`ls`/`find`/`tree` on `~/.claude/skills`, `~/.agents`,
 `~/.cursor/skills`, `~/.skills-archive`, plugin caches), forcing agents through
 `skillfind`/`rulesfind` instead. Catalog tooling is allow-listed.
 
-`install.sh` copies the hook file; register it yourself in `~/.claude/settings.json`:
+`install.py` copies the hook file; register it yourself in `~/.claude/settings.json`:
 
 ```json
 {
@@ -16,7 +16,7 @@ skill directories (`ls`/`find`/`tree` on `~/.claude/skills`, `~/.agents`,
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "bash ~/.claude/hooks/skills-discovery-guard.sh" }
+          { "type": "command", "command": "python3 ~/.claude/hooks/skills-discovery-guard.py" }
         ]
       }
     ]

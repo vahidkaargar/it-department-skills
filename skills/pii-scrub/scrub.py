@@ -65,7 +65,7 @@ def redact(text: str) -> tuple[str, Counter]:
                 return f"{m.group(1)}{m.group(2)}[REDACTED_{m.group(1).upper()}]"
             text = rx.sub(_s, text)
         else:
-            text = rx.sub(lambda m, l=label: sub_simple(l, m), text)
+            text = rx.sub(lambda m, lbl=label: sub_simple(lbl, m), text)
     return text, counts
 
 

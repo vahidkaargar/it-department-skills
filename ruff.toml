@@ -1,0 +1,13 @@
+# Lint config for this repo's first-party Python tooling (installer, hook,
+# discovery CLI, skill scripts). Enforced in CI (.github/workflows/ci.yml).
+line-length = 120
+extend-exclude = [
+    "skills/tech-debt-tracker/assets",  # intentionally messy sample codebase used as scanner test input
+    "skills/skill-tester/assets",       # intentionally imperfect sample skill used as validator test input
+]
+
+[lint]
+select = ["E", "F"]
+ignore = [
+    "E501",  # line length: not enforced, no existing formatting convention/formatter in this repo
+]

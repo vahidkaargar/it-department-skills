@@ -1,0 +1,17 @@
+{
+  "threshold": 2.5,
+  "reporters": ["ai"],
+  "ignore": [
+    "**/node_modules/**",
+    "**/.git/**",
+    "**/assets/**",
+    "**/*.min.*",
+    "skills/blindspot-check/**",
+    "skills/thiel-style-converter/**",
+    "skills/positioning-with-ekram/**"
+  ],
+  "format": ["python", "bash"],
+  "minLines": 5,
+  "minTokens": 50,
+  "gitignore": true
+}

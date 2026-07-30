@@ -21,7 +21,7 @@ import sys
 SCRIPTS_DIR = Path(__file__).parent.parent / "scripts"
 sys.path.insert(0, str(SCRIPTS_DIR))
 
-from security_scorer import (
+from security_scorer import (  # noqa: E402 — must follow sys.path.insert above
     SecurityScorer,
     # Constants
     MAX_COMPONENT_SCORE,
@@ -120,22 +120,22 @@ class TestPrecompiledPatterns(unittest.TestCase):
         
     def test_os_system_pattern_detects(self):
         """Test that os.system pattern is detected."""
-        code = 'os.system("ls -la")'
+        code = 'os.system("ls -la")'  # noqa: SEC-AUDITOR — test fixture string, not executed
         self.assertTrue(PATTERN_OS_SYSTEM.search(code))
         
     def test_eval_pattern_detects(self):
         """Test that eval pattern is detected."""
-        code = 'result = eval(user_input)'
+        code = 'result = eval(user_input)'  # noqa: SEC-AUDITOR — test fixture string, not executed
         self.assertTrue(PATTERN_EVAL.search(code))
         
     def test_exec_pattern_detects(self):
         """Test that exec pattern is detected."""
-        code = 'exec(user_code)'
+        code = 'exec(user_code)'  # noqa: SEC-AUDITOR — test fixture string, not executed
         self.assertTrue(PATTERN_EXEC.search(code))
         
     def test_subprocess_shell_true_pattern_detects(self):
         """Test that subprocess shell=True pattern is detected."""
-        code = 'subprocess.run(cmd, shell=True)'
+        code = 'subprocess.run(cmd, shell=True)'  # noqa: SEC-AUDITOR — test fixture string, not executed
         self.assertTrue(PATTERN_SUBPROCESS_SHELL_TRUE.search(code))
         
     def test_shlex_quote_pattern_detects(self):
@@ -294,7 +294,7 @@ import os
 
 def get_credentials():
     password = os.getenv("DB_PASSWORD")
-    api_key = os.environ.get("API_KEY")
+    api_key = os.environ.get("API_KEY")  # noqa: SEC-AUDITOR — fixture written to a temp file, never executed here
     return password, api_key
     
 def main():
@@ -438,7 +438,7 @@ class TestCommandInjectionPrevention(unittest.TestCase):
 import os
 
 def run_command(user_input):
-    os.system("echo " + user_input)
+    os.system("echo " + user_input)  # noqa: SEC-AUDITOR — fixture written to a temp file, never executed here
     
 def main():
     pass
@@ -461,7 +461,7 @@ if __name__ == "__main__":
 import subprocess
 
 def run_command(cmd):
-    subprocess.run(cmd, shell=True)
+    subprocess.run(cmd, shell=True)  # noqa: SEC-AUDITOR — fixture written to a temp file, never executed here
     
 def main():
     pass
@@ -483,7 +483,7 @@ if __name__ == "__main__":
             script_path = Path(tmpdir) / "risky.py"
             script_path.write_text("""
 def evaluate(user_input):
-    return eval(user_input)
+    return eval(user_input)  # noqa: SEC-AUDITOR — fixture written to a temp file, never executed here
     
 def main():
     pass
@@ -504,7 +504,7 @@ if __name__ == "__main__":
             script_path = Path(tmpdir) / "risky.py"
             script_path.write_text("""
 def execute(user_code):
-    exec(user_code)
+    exec(user_code)  # noqa: SEC-AUDITOR — fixture written to a temp file, never executed here
     
 def main():
     pass

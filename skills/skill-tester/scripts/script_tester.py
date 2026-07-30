@@ -17,15 +17,12 @@ Dependencies: Python Standard Library Only
 import argparse
 import ast
 import json
-import os
 import subprocess
 import sys
-import tempfile
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple, Union
-import threading
+from typing import Dict, List
 
 
 class TestError(Exception):
@@ -549,7 +546,7 @@ class ScriptTester:
                     )
                     if process.returncode == 0:
                         json_support = True
-                except:
+                except Exception:
                     pass
                     
             # Evaluate dual output support

@@ -24,7 +24,7 @@ metadata:
 
 2. **Draft the skill** - create:
    - SKILL.md with concise instructions
-   - Additional reference files if content exceeds 500 lines
+   - Additional reference files if content exceeds 100 lines
    - Utility scripts if deterministic operations needed
 
 3. **Review with user** - present draft and ask:

@@ -20,14 +20,12 @@ Changelog:
 """
 
 import argparse
-import ast
 import json
-import os
 import re
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
+from typing import List
 
 # Import Security Scorer module
 from security_scorer import SecurityScorer
@@ -488,7 +486,7 @@ class QualityScorer:
             try:
                 content = ref_file.read_text(encoding='utf-8')
                 total_content += len(content.strip())
-            except:
+            except Exception:
                 continue
                 
         if total_content >= 2000:
@@ -533,17 +531,16 @@ class QualityScorer:
         dimension = QualityDimension("Code Quality", weight, "Quality of Python scripts and implementation")
         
         scripts_dir = self.skill_path / "scripts"
-        if not scripts_dir.exists():
-            dimension.add_score("scripts_existence", 0, 100, "No scripts directory")
-            dimension.add_suggestion("Create scripts directory with Python files")
-            dimension.calculate_final_score()
-            self.report.add_dimension(dimension)
-            return
-            
-        python_files = list(scripts_dir.glob("*.py"))
+        if scripts_dir.exists():
+            python_files = list(scripts_dir.glob("*.py"))
+        else:
+            # Small, single-script skills often keep the script directly in the
+            # skill root instead of a scripts/ subdirectory — both are valid.
+            python_files = list(self.skill_path.glob("*.py"))
+
         if not python_files:
-            dimension.add_score("python_scripts", 0, 100, "No Python scripts found")
-            dimension.add_suggestion("Add Python scripts to scripts directory")
+            dimension.add_score("python_scripts", 0, 100, "No Python scripts found (scripts/ subdirectory or skill root)")
+            dimension.add_suggestion("Add Python script(s) to the skill (scripts/ subdirectory or skill root)")
             dimension.calculate_final_score()
             self.report.add_dimension(dimension)
             return
@@ -755,7 +752,7 @@ class QualityScorer:
         score += (present_recommended / len(recommended_dirs)) * 10
         
         dimension.add_score("directory_structure", score, 25,
-                           f"Directory structure completeness")
+                           "Directory structure completeness")
                            
         missing_recommended = [d for d in recommended_dirs if not (self.skill_path / d).exists()]
         if missing_recommended:
@@ -885,7 +882,7 @@ class QualityScorer:
                     score += 10
                 if 'example' in content:
                     score += 5
-            except:
+            except Exception:
                 pass
                 
         # Check scripts for help text quality
@@ -899,7 +896,7 @@ class QualityScorer:
                     content = script_path.read_text(encoding='utf-8')
                     if 'argparse' in content and 'help=' in content:
                         help_quality += 2
-                except:
+                except Exception:
                     continue
                     
             score += min(help_quality, 10)  # Up to 10 points for help text
@@ -929,8 +926,8 @@ class QualityScorer:
                     # Check for examples in help
                     if 'examples:' in content.lower() or 'example:' in content.lower():
                         score += 3  # Examples in help
-                        
-                except:
+
+                except Exception:
                     continue
                     
         # Check for documentation files
