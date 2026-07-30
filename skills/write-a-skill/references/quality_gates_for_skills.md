@@ -36,15 +36,15 @@ Matt's 6 are the floor. For a mature skill library, add:
 
 Every reference file in `references/` should cite ≥ 5 authoritative sources. Why: skills inspired by public material need traceable provenance. Tool: grep-based count of bibliography entries.
 
-### Tool determinism (karpathy-coder discipline)
+### Tool determinism
 
 Every script in `scripts/` should:
-- Be stdlib-only (no external dependencies)
-- Have embedded sample input
-- Support `--output {text,json}`
+- Be stdlib-only (no external dependencies) — matches this repo's own tooling (`install.py`, `skillfind`, `build-index.py`)
+- Have embedded sample input or a documented dry-run path
+- Support `--output {text,json}` where practical
 - Be deterministic (no randomness, no LLM calls)
 
-Tool: `engineering/karpathy-coder/skills/karpathy-coder/scripts/complexity_checker.py`
+No automated complexity-check tool exists in this repo yet — enforce by review.
 
 ### Cross-skill compatibility
 
@@ -58,7 +58,7 @@ Skills derived from external sources (MIT-licensed or public-domain) must:
 - State the license
 - Note what's preserved vs added
 
-Tool: presence-of-attribution grep in plugin.json + README.md.
+This repo's mechanism: the `metadata:` block in SKILL.md frontmatter (`derived_from`, `original_author`, `original_license`) plus a matching entry in the repo root README.md Credits section — see this skill's own frontmatter for the pattern.
 
 ## Quality Gate Sequencing
 
@@ -68,10 +68,8 @@ Apply gates in this order during PR:
 1. Description validator      (fast; catches most issues early)
 2. Structure validator        (fast; folder layout + line counts)
 3. Review checklist runner    (combined; all 6 of Matt's items)
-4. Karpathy complexity check  (code quality; only if scripts/ exists)
-5. Karpathy assumption linter (code quality; only if scripts/ exists)
-6. Link integrity scan        (cross-skill references)
-7. Citation density check     (references/ bibliography)
+4. Link integrity scan        (cross-skill references)
+5. Citation density check     (references/ bibliography)
 ```
 
 If any gate fails, PR is blocked. WARN status (1 check fails out of 6) requires reviewer justification in PR description.
@@ -90,8 +88,6 @@ jobs:
           for skill in $(find . -name "SKILL.md" -type f); do
             python skills/write-a-skill/scripts/skill_review_checklist_runner.py "$(dirname $skill)"
           done
-      - name: Run karpathy gate
-        run: python skills/karpathy-coder/scripts/complexity_checker.py .
 ```
 
 ## Common Failure Modes (and Fixes)
@@ -112,32 +108,17 @@ jobs:
 3. **Manual review for what tools can check** — wastes reviewer attention on mechanical items. Reserve manual review for judgment calls (is the workflow correct? Does the skill cover the stated use case?).
 4. **Gate proliferation** — adding new gates faster than they're enforced creates fatigue. Cap at ~10 gates total; merge similar ones.
 
-## Binding vs Advisory for Legacy Skills
+## Binding vs Advisory for Vendored Skills
 
-Matt's 6-item checklist is **binding for new skills** (any skill authored after v2.6.0 must PASS all 6 before merge). For **legacy skills** authored before this discipline was established, the same rules apply as **advisory** signals to triage, not blockers.
+Matt's 6-item checklist is **binding for first-party skills** — anything authored natively in this repo must PASS all 6 before merge. For **vendored third-party skills** (kept as the upstream author wrote them, e.g. `blindspot-check`, `thiel-style-converter`, `positioning-with-ekram`), the same checks apply as **advisory** only — the point of vendoring is preserving the original voice, not reformatting it to local convention.
 
-The reason: this repo has 298 SKILL.md files written under different conventions over time. Auditing them against the v2.6.0 checklist surfaces real tech debt, but retro-fitting all 298 in one sweep would require ~50-100 hours of careful editing. Forcing the gate as blocking would either delay all PRs or require disabling the gate.
+How to tell which cohort a skill belongs to: does its SKILL.md frontmatter have a `metadata.derived_from` field and an upstream `LICENSE` file in the skill folder? If yes, it's vendored (advisory). If no, it's first-party (blocking).
 
-The pragmatic split:
+## Common Vendored-Skill Issues
 
-| Skill cohort | Gate status | Action on failure |
-|---|---|---|
-| **New skills (post-v2.6.0)** | **Blocking** — must PASS all 6 | Fix before PR merge |
-| **Legacy skills (pre-v2.6.0)** | **Advisory** — WARN/FAIL surfaced but non-blocking | Track in audit report; fix opportunistically |
+Vendored skills routinely exceed the 100-line ceiling — the upstream author didn't write to this repo's convention, and reformatting their content risks losing their intent. Leave line-count/structure WARNs on vendored skills as documentation, not action items.
 
-How to tell which cohort a skill belongs to:
-- New: matches the `engineering/<skill>/skills/<skill>/` wrapper pattern with `attribution` in plugin.json, OR was added in a PR tagged for v2.6.0+
-- Legacy: pre-existing structure without the wrapper pattern, or pre-v2.6.0 git history
-
-Re-running `scripts/audit_skills.py` periodically captures the legacy backlog drift. The numerator (PASS count) is the metric to grow over time, not "force every skill to PASS by Friday."
-
-## Common Cohort-Specific Issues
-
-**Legacy SKILL.md > 100 lines (88% of repo):** the dominant violation. Most legacy skills predate the 100-line ceiling. Splitting them into `references/` is invasive. The advisory frame: a 200-line legacy SKILL.md isn't urgent unless the skill is actively being edited.
-
-**Legacy missing "Use when" trigger (26% of repo after v2.6.1 validator fix):** highest-leverage fix because it's a 1-line edit per skill. Even legacy skills should adopt this in the next time they're touched.
-
-**Legacy placeholder descriptions (e.g., "Migration Architect" as the only description text):** these are real bugs, not just lint failures. Fix on sight. v2.6.1 fixed 10 of these in the engineering POWERFUL tier.
+Re-run `scripts/skill_review_checklist_runner.py` across all skills periodically to see how many first-party skills PASS — that count, not "zero WARNs everywhere," is the metric to grow.
 
 ## When This Reference Doesn't Help
 
@@ -150,7 +131,7 @@ Re-running `scripts/audit_skills.py` periodically captures the legacy backlog dr
 **Source authorities (non-exhaustive):**
 
 - **Matt Pocock — write-a-skill** (https://github.com/mattpocock/skills/, MIT) — the 6-item review checklist
-- **Karpathy, A. — public commentary on LLM coding pitfalls** (X.com, 2024-2025) — discipline framework adopted as `engineering/karpathy-coder/`
+- **Karpathy, A. — public commentary on LLM coding pitfalls** (X.com, 2024-2025) — discipline framework referenced for the tool-determinism gate
 - **Anthropic — Building agents with skills** (https://docs.claude.com/en/docs/agents/skills) — official skill quality guidance
 - **Continuous Integration / Continuous Deployment patterns** — Humble & Farley (Continuous Delivery, 2010) — gate sequencing principles
 - **The Phoenix Project** (Kim et al., 2013) + Three Ways of DevOps — quality gates as constraint management
