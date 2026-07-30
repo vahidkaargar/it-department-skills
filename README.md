@@ -53,7 +53,7 @@ rulesfind "output mode"               # -> absolute-mode spec
 | `discovery/skills-catalog/` | `skillfind`/`rulesfind` CLI, index builder, optional localhost HTTP API |
 | `hooks/skills-discovery-guard.sh` | PreToolUse hook: denies `ls`/`find` on skill dirs (opt-in) |
 | `templates/.ai/` | Starter `.ai/context.md` + examples layout for the rules' context protocol |
-| `install.sh` / `personalize.sh` | Idempotent installer (symlink + backup) and interactive personalizer |
+| `install.sh` / `personalize.sh` | Idempotent installer (copy + backup) and interactive personalizer |
 
 ## Design principles
 

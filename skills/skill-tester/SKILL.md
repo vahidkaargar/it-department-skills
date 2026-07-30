@@ -16,22 +16,24 @@ Meta-skill that validates, tests, and scores skills in this repository. Four too
 
 > **Scope note:** this skill's tier line-count minimums measure *legacy* skills. For authoring *new* skills, `engineering/write-a-skill` (SKILL.md under ~100 lines, Matt Pocock doctrine) is the binding standard — do not pad a new skill to satisfy a tier minimum here.
 
-## Quick Start (exact, runnable from repo root)
+## Quick Start
+
+> **WARNING — runs the target's code.** `script_tester.py` and `quality_scorer.py`
+> EXECUTE the target skill's scripts. Never point them at an untrusted or
+> unreviewed skill; run `skill-security-auditor` on it first.
 
 ```bash
 # 1. Validate structure (exit non-zero on failure — usable as a gate)
-python3 engineering/skills/skill-tester/scripts/skill_validator.py engineering/skills/self-eval --json
+python3 ~/.claude/skills/skill-tester/scripts/skill_validator.py ~/.claude/skills/pii-scrub --json
 
 # 2. Test the skill's Python scripts (30s default timeout per script)
-python3 engineering/skills/skill-tester/scripts/script_tester.py engineering/skills/self-eval --json
+python3 ~/.claude/skills/skill-tester/scripts/script_tester.py ~/.claude/skills/pii-scrub --json
 
 # 3. Score quality (fail CI below threshold with --minimum-score)
-python3 engineering/skills/skill-tester/scripts/quality_scorer.py engineering/skills/self-eval --json --detailed --minimum-score 75
+python3 ~/.claude/skills/skill-tester/scripts/quality_scorer.py ~/.claude/skills/pii-scrub --json --detailed --minimum-score 75
 ```
 
 Consume the JSON: validator emits `overall_score`, `compliance_level`, per-check `checks{}`; scorer emits `overall_score`, `letter_grade`, `tier_recommendation`, `dimensions`, and an `improvement_roadmap` — work the roadmap top-down, then re-run until the target score is met.
-
-For repo-wide auditing prefer `scripts/audit_skills.py` at the repo root (wraps the write-a-skill checklist runner across all skills).
 
 ## What Each Tool Checks
 

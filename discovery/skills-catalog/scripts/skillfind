@@ -57,6 +57,13 @@ def newest_source_mtime():
             with os.scandir(root) as it:
                 for entry in it:
                     newest = max(newest, entry.stat(follow_symlinks=False).st_mtime)
+                    # catch in-place SKILL.md edits (dir mtime doesn't change)
+                    if entry.is_dir(follow_symlinks=True):
+                        try:
+                            newest = max(newest, os.stat(
+                                os.path.join(entry.path, "SKILL.md")).st_mtime)
+                        except OSError:
+                            pass
         except OSError:
             continue
     return newest

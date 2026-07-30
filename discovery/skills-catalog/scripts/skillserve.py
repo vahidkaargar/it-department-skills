@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """skillserve — localhost HTTP API over the skills catalog, for AI agents.
 
-Sits behind nginx 127.0.0.1:3333. Binds 127.0.0.1:3401 (never LAN).
+Binds 127.0.0.1:3401 (never LAN). Put a reverse proxy in front only if
+you need auth or LAN access.
 
 Endpoints (GET only):
   /health                      -> {"ok": true, "skills": N}
@@ -16,7 +17,7 @@ Endpoints (GET only):
                                    kind/always_on/desc.
 
 Reuses skillfind's index + scoring via module import — one source of truth.
-Stdlib only. Run: python3 skillserve.py  (or via start-nginx-3333.sh)
+Stdlib only. Run: python3 skillserve.py
 """
 import importlib.machinery
 import importlib.util
@@ -27,12 +28,15 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
 BIND = ("127.0.0.1", 3401)
-CATALOG_DIR = os.path.join(os.path.expanduser("~"), ".agents", "skills-catalog")
+# resolve siblings from this script's own location so skillserve runs both
+# installed (~/.agents/skills-catalog) and straight from a repo clone
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+CATALOG_DIR = os.path.dirname(SCRIPT_DIR)
 CATALOG_MD = os.path.join(CATALOG_DIR, "CATALOG.md")
 
 _spec = importlib.util.spec_from_loader(
     "skillfind", importlib.machinery.SourceFileLoader(
-        "skillfind", os.path.join(CATALOG_DIR, "scripts", "skillfind")))
+        "skillfind", os.path.join(SCRIPT_DIR, "skillfind")))
 skillfind = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(skillfind)
 
@@ -145,6 +149,11 @@ class Handler(BaseHTTPRequestHandler):
                                "/rules?q= | /rules?always=1"]}, 404)
         except BrokenPipeError:
             pass
+        except SystemExit:  # skillfind.die() on index-rebuild failure
+            try:
+                self.send_json({"error": "index rebuild failed — run build-index.py manually"}, 500)
+            except Exception:
+                pass
         except Exception as e:  # never crash the server on one bad request
             try:
                 self.send_json({"error": f"internal: {e.__class__.__name__}: {e}"}, 500)

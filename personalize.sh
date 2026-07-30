@@ -7,6 +7,8 @@ set -euo pipefail
 CONTEXT="$HOME/.ai/context.md"
 RULES="$HOME/.ai/rules.md"
 
+command -v perl >/dev/null 2>&1 || { echo "ERROR: perl is required (apt/apk/brew install perl)"; exit 1; }
+
 ask() { # ask "<prompt>" <default> -> stdout
   local prompt="$1" def="${2:-}" ans
   read -r -p "$prompt${def:+ [$def]}: " ans || true
@@ -46,14 +48,18 @@ echo ""
 echo "-- output modes --"
 echo "Absolute Mode: terse, no filler/hedging (spec: ~/.claude/absolute-mode.md)"
 am="$(ask 'Enable Absolute Mode by default in rules? (y/n)' 'y')"
-if [ "$am" != y ] && [ -f "$RULES" ] && grep -q 'Absolute Mode ACTIVE by default' "$RULES"; then
-  for f in "$RULES" "$HOME/.claude/AGENT_RULES.md"; do
-    [ -f "$f" ] && perl -pi -e 's/Absolute Mode ACTIVE by default/Absolute Mode OFF by default (enable per-session: say "absolute mode")/' "$f"
-  done
-  echo "Absolute Mode default: off"
-else
-  echo "Absolute Mode default: on (toggle per-session with \"normal mode\")"
-fi
+case "$am" in
+  [Yy]*)
+    for f in "$RULES" "$HOME/.claude/AGENT_RULES.md"; do
+      [ -f "$f" ] && perl -pi -e 's/Absolute Mode OFF by default \(enable per-session: say "absolute mode"\)/Absolute Mode ACTIVE by default/' "$f"
+    done
+    echo "Absolute Mode default: on (toggle per-session with \"normal mode\")" ;;
+  *)
+    for f in "$RULES" "$HOME/.claude/AGENT_RULES.md"; do
+      [ -f "$f" ] && perl -pi -e 's/Absolute Mode ACTIVE by default/Absolute Mode OFF by default (enable per-session: say "absolute mode")/' "$f"
+    done
+    echo "Absolute Mode default: off (re-run personalize.sh to re-enable)" ;;
+esac
 
 echo ""
 echo "-- CLAUDE.md pointer --"

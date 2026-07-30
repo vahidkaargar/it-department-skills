@@ -1,0 +1,38 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Shell syntax + shellcheck
+        run: |
+          bash -n install.sh personalize.sh hooks/*.sh
+          sudo apt-get install -y shellcheck >/dev/null
+          shellcheck -S warning install.sh personalize.sh hooks/*.sh
+
+      - name: Python compile
+        run: |
+          python3 -m py_compile $(git ls-files '*.py')
+          python3 -c "import ast; ast.parse(open('discovery/skills-catalog/scripts/skillfind').read())"
+
+      - name: Skill security scorer tests
+        run: python3 skills/skill-tester/tests/test_security_scorer.py
+
+      - name: Installer smoke test (fresh HOME, no symlinks)
+        run: |
+          export FAKE_HOME=$(mktemp -d)
+          HOME=$FAKE_HOME bash install.sh --yes
+          test "$(find $FAKE_HOME -type l | wc -l)" -eq 0
+          HOME=$FAKE_HOME $FAKE_HOME/.local/bin/skillfind "redact secrets" | grep -q pii-scrub
+          HOME=$FAKE_HOME bash install.sh --yes | grep -q "already up to date"
+
+      - name: Secret / PII scan
+        run: |
+          ! git grep -nE '(BEGIN (RSA|OPENSSH) PRIVATE KEY|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|xox[baprs]-[A-Za-z0-9-]{10,})' -- . \
+            ':!skills/skill-tester/tests' ':!skills/skill-security-auditor' ':!skills/pii-scrub'

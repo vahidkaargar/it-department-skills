@@ -17,6 +17,9 @@ for arg in "$@"; do
       echo "  --dry-run   print actions without changing anything"
       echo "  --yes       skip confirmation prompts"
       exit 0 ;;
+    *)
+      echo "unknown option: $arg (see --help)" >&2
+      exit 1 ;;
   esac
 done
 
@@ -29,13 +32,19 @@ install_copy() {
   local src="$1" dst="$2"
   run mkdir -p "$(dirname "$dst")"
   if [ -e "$dst" ] || [ -L "$dst" ]; then
-    if diff -rq "$src" "$dst" >/dev/null 2>&1; then
+    # a symlinked dst is never "up to date" — it must become a real copy;
+    # generated index files are excluded so re-runs stay idempotent
+    if [ ! -L "$dst" ] && diff -rq -x index.json -x rules-index.json -x CATALOG.md -x __pycache__ \
+         "$src" "$dst" >/dev/null 2>&1; then
       say "ok:      $dst (already up to date)"
       return
     fi
-    run mkdir -p "$BACKUP_DIR"
-    say "backup:  $dst -> $BACKUP_DIR/"
-    run cp -RP "$dst" "$BACKUP_DIR/" 2>/dev/null || true
+    # mirror the destination path inside the backup dir so same-named
+    # destinations (e.g. skills-discovery, installed twice) cannot collide
+    local bdst="$BACKUP_DIR/${dst#"$HOME"/}"
+    run mkdir -p "$(dirname "$bdst")"
+    say "backup:  $dst -> $bdst"
+    run cp -RP "$dst" "$bdst"   # a failed backup aborts (set -e) BEFORE rm -rf
     run rm -rf "$dst"
   fi
   run cp -R "$src" "$dst"
@@ -53,6 +62,17 @@ run mkdir -p "$HOME/.ai" "$HOME/.claude"
 install_copy "$REPO_DIR/rules/AGENT_RULES.md"    "$HOME/.ai/rules.md"
 install_copy "$REPO_DIR/rules/AGENT_RULES.md"    "$HOME/.claude/AGENT_RULES.md"
 install_copy "$REPO_DIR/rules/absolute-mode.md"  "$HOME/.claude/absolute-mode.md"
+# preserve a personalize.sh "Absolute Mode OFF" choice across updates
+if command -v perl >/dev/null 2>&1; then
+  for f in "$HOME/.ai/rules.md" "$HOME/.claude/AGENT_RULES.md"; do
+    b="$BACKUP_DIR/${f#"$HOME"/}"
+    if [ "$DRY_RUN" = 0 ] && [ -f "$b" ] && grep -q 'Absolute Mode OFF by default' "$b" \
+       && grep -q 'Absolute Mode ACTIVE by default' "$f" 2>/dev/null; then
+      perl -pi -e 's/Absolute Mode ACTIVE by default/Absolute Mode OFF by default (enable per-session: say "absolute mode")/' "$f"
+      say "kept:    Absolute Mode OFF (your personalize.sh choice) in $f"
+    fi
+  done
+fi
 if [ ! -e "$HOME/.ai/context.md" ]; then
   run cp "$REPO_DIR/templates/.ai/context.md" "$HOME/.ai/context.md"
   say "created: ~/.ai/context.md (template — run personalize.sh to fill it)"

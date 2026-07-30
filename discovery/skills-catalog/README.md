@@ -12,11 +12,12 @@ CATALOG.md            generated quick-ref (hot set only) — never hand-edit
 index.json            machine index of all skills, realpath-deduped
 rules-index.json      rules (.md/.mdc) incl. always_on flag
 scripts/build-index.py    scanner/generator (stdlib python3)
-scripts/skillfind         search CLI (also symlinked as rulesfind)
+scripts/skillfind         search CLI (also installed as rulesfind — same script, second copy)
 scripts/skillserve.py     optional localhost HTTP API (stdlib python3)
 ```
 
-CLI on PATH: `skillfind` / `rulesfind` → `scripts/skillfind` (symlinked by install.sh).
+CLI on PATH: install.sh copies `scripts/skillfind` to `~/.local/bin` under both
+names; invoked as `rulesfind` it behaves as `skillfind --rules`.
 
 ## Use
 

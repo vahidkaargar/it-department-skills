@@ -3,17 +3,17 @@ name: "remember"
 description: "Explicitly save important knowledge to auto-memory with timestamp and context. Use when a discovery is too important to rely on auto-capture."
 ---
 
-# /si:remember — Save Knowledge Explicitly
+# remember — Save Knowledge Explicitly
 
 Writes an explicit entry to auto-memory when something is important enough that you don't want to rely on Claude noticing it automatically.
 
 ## Usage
 
 ```
-/si:remember <what to remember>
-/si:remember "This project's CI requires Node 20 LTS — v22 breaks the build"
-/si:remember "The /api/auth endpoint uses a custom JWT library, not passport"
-/si:remember "Reza prefers explicit error handling over try-catch-all patterns"
+/remember <what to remember>
+/remember "This project's CI requires Node 20 LTS — v22 breaks the build"
+/remember "The /api/auth endpoint uses a custom JWT library, not passport"
+/remember "Reza prefers explicit error handling over try-catch-all patterns"
 ```
 
 ## When to Use
@@ -37,8 +37,11 @@ Extract from the user's input:
 
 ### Step 2: Check for duplicates
 
+Use the auto-memory directory Claude Code announces in its system prompt
+(the "Memory" section names the exact path). Fallback if unknown:
+
 ```bash
-MEMORY_DIR="$HOME/.claude/projects/$(pwd | sed 's|/|%2F|g; s|%2F|/|; s|^/||')/memory"
+MEMORY_DIR="$HOME/.claude/projects/$(pwd | tr '/.' '--')/memory"
 grep -ni "<keywords>" "$MEMORY_DIR/MEMORY.md" 2>/dev/null
 ```
 
@@ -82,7 +85,7 @@ If the knowledge sounds like a rule (imperative, always/never, convention):
   Claude will see this at the start of every session in this project.
 ```
 
-## What NOT to use /si:remember for
+## What NOT to use /remember for
 
 - **Temporary context**: Use session memory or just tell Claude in conversation
 - **Enforced rules**: Use `/si:promote` to write directly to CLAUDE.md

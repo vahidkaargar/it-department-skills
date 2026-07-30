@@ -615,6 +615,7 @@ def scan_file_code(filepath: Path, report: AuditReport):
     if ext in {".js", ".ts", ".mjs", ".cjs"}:
         patterns.extend(JS_PATTERNS)
 
+    suppressed_lines = []
     for i, line in enumerate(lines, 1):
         stripped = line.strip()
         # Skip comments
@@ -622,10 +623,12 @@ def scan_file_code(filepath: Path, report: AuditReport):
             continue
         if stripped.startswith("//") and ext in {".js", ".ts", ".mjs", ".cjs"}:
             continue
-        # Honor explicit suppression directive (security tooling references its
-        # own dangerous-pattern strings inside regex/check definitions, which
-        # would otherwise trigger every pattern that matches itself)
+        # Suppression directives skip pattern-matching for the line (security
+        # tooling references its own dangerous-pattern strings inside regex
+        # definitions), but every suppressed line is counted and surfaced as a
+        # HIGH finding below — a suppression can never produce a silent PASS.
         if "noqa: SEC-AUDITOR" in line or "auditor:ignore-line" in line:
+            suppressed_lines.append(i)
             continue
 
         for pat in patterns:
@@ -641,6 +644,18 @@ def scan_file_code(filepath: Path, report: AuditReport):
                         fix=pat["fix"],
                     )
                 )
+    if suppressed_lines:
+        report.findings.append(
+            Finding(
+                severity="HIGH",
+                category="suppression-directive",
+                file=str(filepath),
+                line=suppressed_lines[0],
+                pattern=f"{len(suppressed_lines)} line(s) carry auditor suppression directives",
+                risk="Suppressed lines were NOT pattern-scanned; a malicious skill can hide payloads behind them.",
+                fix=f"Manually review lines {suppressed_lines[:20]} and remove directives that are not self-referential pattern definitions.",
+            )
+        )
 
 
 def scan_file_prompt_injection(filepath: Path, report: AuditReport):
@@ -669,6 +684,18 @@ def scan_file_prompt_injection(filepath: Path, report: AuditReport):
                         fix=pat["fix"],
                     )
                 )
+    if suppressed_lines:
+        report.findings.append(
+            Finding(
+                severity="HIGH",
+                category="suppression-directive",
+                file=str(filepath),
+                line=suppressed_lines[0],
+                pattern=f"{len(suppressed_lines)} line(s) carry auditor suppression directives",
+                risk="Suppressed lines were NOT pattern-scanned; a malicious skill can hide payloads behind them.",
+                fix=f"Manually review lines {suppressed_lines[:20]} and remove directives that are not self-referential pattern definitions.",
+            )
+        )
 
 
 def scan_dependencies(skill_path: Path, report: AuditReport):

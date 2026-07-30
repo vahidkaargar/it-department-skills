@@ -163,6 +163,9 @@ def find_skill_files(root, max_depth=7):
         dirnames[:] = [d for d in dirnames if d not in skip]
         if "SKILL.md" in filenames:
             yield os.path.join(dirpath, "SKILL.md")
+            # a skill dir is a leaf: never index fixture/sample skills nested
+            # under a real skill (e.g. test assets)
+            dirnames[:] = []
 
 
 def plugin_id_from_path(path):
@@ -346,6 +349,7 @@ def main():
             "plugin": sum(1 for s in skills if "plugin" in s),
         },
     }
+    os.makedirs(CATALOG_DIR, exist_ok=True)
     with open(INDEX_PATH, "w", encoding="utf-8") as f:
         json.dump({"meta": meta, "skills": skills}, f, indent=1)
     with open(RULES_INDEX_PATH, "w", encoding="utf-8") as f:

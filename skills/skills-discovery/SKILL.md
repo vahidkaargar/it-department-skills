@@ -5,7 +5,9 @@ description: MANDATORY SOURCE OF TRUTH for finding skills and rules on this mach
 
 # Skills discovery — source of truth
 
-**Enforced, not advisory.** `~/.claude/hooks/skills-discovery-guard.sh` runs on every
+**Enforced when the opt-in guard hook is installed** (see repo `docs/hooks.md`;
+treat search-first as mandatory even without it). The hook
+`~/.claude/hooks/skills-discovery-guard.sh` runs on every
 Bash call (PreToolUse) and denies (`exit 2`) raw enumeration of skill directories —
 `ls`/`find`/`tree` against `~/.claude/skills`, `~/.agents`, `~/.cursor/skills`,
 `~/.skills-archive`, plugin caches, or bulk `find -name SKILL.md` / glob-cat of many
@@ -49,8 +51,8 @@ Read `~/.agents/skills-catalog/CATALOG.md` (hot set), or grep
 
 | Tool | Entry point |
 |---|---|
-| Claude Code (global) | this skill via `~/.claude/skills/skills-discovery` symlink + `~/.claude/CLAUDE.md` pointer |
-| Cursor (global) | this skill via `~/.cursor/skills/skills-discovery` symlink |
+| Claude Code (global) | copy installed to `~/.claude/skills/skills-discovery` by install.sh + `~/.claude/CLAUDE.md` pointer |
+| Cursor (global) | not auto-installed — copy this skill dir to `~/.cursor/skills/` (or point Cursor at the `~/.agents` copy) |
 | Cursor (per-repo) | copy `~/.agents/skills-catalog/templates/skills-discovery.mdc` → `<repo>/.cursor/rules/` |
 | Codex / Copilot / other | paste `~/.agents/skills-catalog/templates/AGENTS-snippet.md` into repo `AGENTS.md`; cross-tool map in `~/.ai/rules.md` §8 |
 
@@ -58,4 +60,4 @@ Read `~/.agents/skills-catalog/CATALOG.md` (hot set), or grep
 
 - Index auto-rebuilds when skill dirs change. After editing frontmatter/rules only: `skillfind --rebuild`.
 - `CATALOG.md` is generated — never hand-edit. Generator: `~/.agents/skills-catalog/scripts/build-index.py`.
-- This file is the canonical doc. Symlinks point here; edit HERE only.
+- Installed as copies — edit in the cloned repo and re-run `./install.sh` to propagate.

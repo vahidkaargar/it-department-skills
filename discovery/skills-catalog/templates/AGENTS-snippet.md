@@ -1,6 +1,6 @@
 ## Skill discovery — MANDATORY, not advisory
 
-This machine has 900+ agent skills, indexed. NEVER enumerate skill directories —
+All skills on this machine are indexed. NEVER enumerate skill directories —
 on Claude Code this is hard-blocked by a PreToolUse hook (`skills-discovery-guard.sh`,
 exit 2 on `ls`/`find` against skill roots); treat it as a hard rule regardless of tool.
 Need a capability? Search, read ONE SKILL.md, follow it:
