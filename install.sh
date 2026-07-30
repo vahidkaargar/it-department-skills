@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# it-department-skills installer
-# Installs: global agent rules, portable skills, skill-discovery system (skillfind/rulesfind),
-# optional discovery-guard hook, optional caveman mode (upstream plugin).
-# Idempotent. Backs up anything it would overwrite. --dry-run supported.
+# it-department-skills installer — standalone, copy-based (no symlinks).
+# Copies rules, skills, and the discovery system into your home config.
+# After install the cloned repo is no longer needed; re-run install.sh from a
+# fresh clone to update. Idempotent. Backs up anything it would overwrite.
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -15,7 +15,7 @@ for arg in "$@"; do
     --help|-h)
       echo "usage: install.sh [--dry-run] [--yes]"
       echo "  --dry-run   print actions without changing anything"
-      echo "  --yes       skip confirmation prompts (guard hook + caveman still ask)"
+      echo "  --yes       skip confirmation prompts"
       exit 0 ;;
   esac
 done
@@ -24,31 +24,25 @@ BACKUP_DIR="$HOME/.it-department-skills-backup/$(date +%Y%m%d-%H%M%S)"
 say()  { printf '%s\n' "$*"; }
 run()  { if [ "$DRY_RUN" = 1 ]; then say "[dry-run] $*"; else "$@"; fi; }
 
-backup() {
-  # backup <path> — move existing file/dir aside before overwrite
-  local p="$1"
-  if [ -e "$p" ] && [ ! -L "$p" ]; then
-    run mkdir -p "$BACKUP_DIR"
-    say "backup: $p -> $BACKUP_DIR/"
-    run cp -R "$p" "$BACKUP_DIR/"
-  fi
-}
-
-link_or_copy() {
-  # symlink from repo so `git pull` updates in place
+install_copy() {
+  # install_copy <src> <dst> — copy file/dir, backing up an existing different dst
   local src="$1" dst="$2"
   run mkdir -p "$(dirname "$dst")"
-  if [ -L "$dst" ] && [ "$(readlink "$dst")" = "$src" ]; then
-    say "ok:     $dst (already linked)"
-    return
+  if [ -e "$dst" ] || [ -L "$dst" ]; then
+    if diff -rq "$src" "$dst" >/dev/null 2>&1; then
+      say "ok:      $dst (already up to date)"
+      return
+    fi
+    run mkdir -p "$BACKUP_DIR"
+    say "backup:  $dst -> $BACKUP_DIR/"
+    run cp -RP "$dst" "$BACKUP_DIR/" 2>/dev/null || true
+    run rm -rf "$dst"
   fi
-  backup "$dst"
-  run rm -rf "$dst"
-  run ln -s "$src" "$dst"
-  say "linked: $dst -> $src"
+  run cp -R "$src" "$dst"
+  say "installed: $dst"
 }
 
-say "== it-department-skills installer =="
+say "== it-department-skills installer (copy-based, standalone) =="
 say "repo: $REPO_DIR"
 [ "$DRY_RUN" = 1 ] && say "(dry run — nothing will be changed)"
 
@@ -56,14 +50,18 @@ say "repo: $REPO_DIR"
 say ""
 say "-- rules --"
 run mkdir -p "$HOME/.ai" "$HOME/.claude"
-link_or_copy "$REPO_DIR/rules/AGENT_RULES.md" "$HOME/.ai/rules.md"
-link_or_copy "$HOME/.ai/rules.md"            "$HOME/.claude/AGENT_RULES.md"
-link_or_copy "$REPO_DIR/rules/absolute-mode.md" "$HOME/.claude/absolute-mode.md"
+install_copy "$REPO_DIR/rules/AGENT_RULES.md"    "$HOME/.ai/rules.md"
+install_copy "$REPO_DIR/rules/AGENT_RULES.md"    "$HOME/.claude/AGENT_RULES.md"
+install_copy "$REPO_DIR/rules/absolute-mode.md"  "$HOME/.claude/absolute-mode.md"
 if [ ! -e "$HOME/.ai/context.md" ]; then
   run cp "$REPO_DIR/templates/.ai/context.md" "$HOME/.ai/context.md"
   say "created: ~/.ai/context.md (template — run personalize.sh to fill it)"
 else
-  say "ok:     ~/.ai/context.md exists (kept yours)"
+  say "ok:      ~/.ai/context.md exists (kept yours)"
+fi
+if [ ! -e "$HOME/.ai/examples" ]; then
+  run cp -R "$REPO_DIR/templates/.ai/examples" "$HOME/.ai/examples"
+  say "created: ~/.ai/examples/"
 fi
 
 # 2. Skills ------------------------------------------------------------------
@@ -72,19 +70,22 @@ say "-- skills --"
 run mkdir -p "$HOME/.claude/skills" "$HOME/.agents"
 for d in "$REPO_DIR"/skills/*/; do
   name="$(basename "$d")"
-  link_or_copy "${d%/}" "$HOME/.claude/skills/$name"
+  install_copy "${d%/}" "$HOME/.claude/skills/$name"
 done
-# canonical home for skills-discovery is ~/.agents (cross-tool), Claude gets symlink
-link_or_copy "$REPO_DIR/skills/skills-discovery" "$HOME/.agents/skills-discovery"
+# cross-tool canonical copy for skills-discovery (Cursor/Codex read ~/.agents)
+install_copy "$REPO_DIR/skills/skills-discovery" "$HOME/.agents/skills-discovery"
 
 # 3. Discovery system --------------------------------------------------------
 say ""
 say "-- discovery (skillfind / rulesfind) --"
-link_or_copy "$REPO_DIR/discovery/skills-catalog" "$HOME/.agents/skills-catalog"
+install_copy "$REPO_DIR/discovery/skills-catalog" "$HOME/.agents/skills-catalog"
 BIN_DIR="$HOME/.local/bin"
 run mkdir -p "$BIN_DIR"
-link_or_copy "$HOME/.agents/skills-catalog/scripts/skillfind" "$BIN_DIR/skillfind"
-link_or_copy "$HOME/.agents/skills-catalog/scripts/skillfind" "$BIN_DIR/rulesfind"
+install_copy "$REPO_DIR/discovery/skills-catalog/scripts/skillfind" "$BIN_DIR/skillfind"
+install_copy "$REPO_DIR/discovery/skills-catalog/scripts/skillfind" "$BIN_DIR/rulesfind"
+run chmod +x "$BIN_DIR/skillfind" "$BIN_DIR/rulesfind" \
+             "$HOME/.agents/skills-catalog/scripts/skillfind" \
+             "$HOME/.agents/skills-catalog/scripts/build-index.py" 2>/dev/null || true
 case ":$PATH:" in
   *":$BIN_DIR:"*) ;;
   *) say "NOTE: add to your shell rc:  export PATH=\"\$HOME/.local/bin:\$PATH\"" ;;
@@ -104,8 +105,8 @@ if [ "$YES" = 1 ]; then install_guard=y; else
   read -r -p "Install skills-discovery-guard PreToolUse hook for Claude Code? [y/N] " install_guard || true
 fi
 if [ "${install_guard:-n}" = y ]; then
-  run mkdir -p "$HOME/.claude/hooks"
-  link_or_copy "$REPO_DIR/hooks/skills-discovery-guard.sh" "$HOME/.claude/hooks/skills-discovery-guard.sh"
+  install_copy "$REPO_DIR/hooks/skills-discovery-guard.sh" "$HOME/.claude/hooks/skills-discovery-guard.sh"
+  run chmod +x "$HOME/.claude/hooks/skills-discovery-guard.sh" 2>/dev/null || true
   say "Hook file installed. Register it in ~/.claude/settings.json:"
   say '  "hooks": { "PreToolUse": [ { "matcher": "Bash", "hooks": [ { "type": "command",'
   say '    "command": "bash ~/.claude/hooks/skills-discovery-guard.sh" } ] } ] }'
@@ -127,5 +128,7 @@ say "  bash /tmp/caveman-install.sh"
 
 say ""
 say "== done =="
+say "Everything was COPIED — you can delete this repo clone now."
 say "backups (if any): $BACKUP_DIR"
-say "next: ./personalize.sh   # fill in your name, stack, and toggle output modes"
+say "update later: git pull && ./install.sh   (re-copies changed files, backs up local edits)"
+say "next: ./personalize.sh   # fill in your machine/stack, toggle output modes"

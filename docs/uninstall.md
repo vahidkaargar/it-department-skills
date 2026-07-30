@@ -1,18 +1,20 @@
 # Uninstall
 
-Everything is symlinked from the repo, so removal is deleting links and
-restoring backups.
+Everything is installed as plain copies — remove them and restore backups.
 
 ```bash
-# remove symlinks (only if they point into this repo)
-for p in ~/.ai/rules.md ~/.claude/AGENT_RULES.md ~/.claude/absolute-mode.md \
-         ~/.agents/skills-catalog ~/.agents/skills-discovery \
-         ~/.local/bin/skillfind ~/.local/bin/rulesfind \
-         ~/.claude/hooks/skills-discovery-guard.sh; do
-  [ -L "$p" ] && rm "$p"
+rm -f  ~/.ai/rules.md ~/.claude/AGENT_RULES.md ~/.claude/absolute-mode.md \
+       ~/.local/bin/skillfind ~/.local/bin/rulesfind \
+       ~/.claude/hooks/skills-discovery-guard.sh
+rm -rf ~/.agents/skills-catalog ~/.agents/skills-discovery
+# per-skill dirs installed by this repo:
+for s in skills-discovery write-a-skill skill-tester skill-security-auditor \
+         pii-scrub remember tech-debt-tracker blindspot-check \
+         thiel-style-converter positioning-with-ekram; do
+  rm -rf ~/.claude/skills/$s
 done
-# per-skill links
-for d in ~/.claude/skills/*; do [ -L "$d" ] && rm "$d"; done
+# only if you never customized them:
+rm -f ~/.ai/context.md; rm -rf ~/.ai/examples
 ```
 
 Restore anything the installer backed up from

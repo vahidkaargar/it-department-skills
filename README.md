@@ -23,7 +23,7 @@ Why "ultra performance"? Three levers:
 git clone https://github.com/vahidkaargar/it-department-skills.git
 cd it-department-skills
 ./install.sh --dry-run   # see what it would do
-./install.sh             # symlinks into ~/.ai, ~/.claude, ~/.agents (backs up existing)
+./install.sh             # copies into ~/.ai, ~/.claude, ~/.agents (backs up existing)
 ./personalize.sh         # fill in your machine/stack, toggle output modes
 ```
 
@@ -61,14 +61,16 @@ rulesfind "output mode"               # -> absolute-mode spec
   Cursor, Copilot) points at it. Edit once.
 - **Search, never enumerate.** Agents read ONE SKILL.md per task, found via
   keyword search over a prebuilt index — not directory listings.
-- **Symlink installs.** `git pull` in this repo updates your live config.
-  `personalize.sh` detaches a file copy-on-write only when you customize it.
+- **Standalone copy installs.** No symlinks — the installer copies everything
+  into `~/.ai`, `~/.claude`, `~/.agents`, so it works identically on any fresh
+  machine and the clone can be deleted afterwards. Update by `git pull` +
+  re-running `./install.sh` (unchanged files are skipped, local edits backed up).
 - **Nothing edits your settings silently.** The guard hook is opt-in and the
   installer prints the settings.json snippet instead of merging it.
 
 ## Uninstall
 
-Symlinks only — remove them and restore from the printed backup dir:
+Plain copies — remove them and restore from the printed backup dir:
 `~/.it-department-skills-backup/<timestamp>/`. Details: `docs/uninstall.md`.
 
 ## Credits

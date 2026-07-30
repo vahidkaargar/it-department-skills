@@ -47,10 +47,10 @@ echo "-- output modes --"
 echo "Absolute Mode: terse, no filler/hedging (spec: ~/.claude/absolute-mode.md)"
 am="$(ask 'Enable Absolute Mode by default in rules? (y/n)' 'y')"
 if [ "$am" != y ] && [ -f "$RULES" ] && grep -q 'Absolute Mode ACTIVE by default' "$RULES"; then
-  # rules file may be a symlink into the repo — copy-on-write so the repo stays pristine
-  if [ -L "$RULES" ]; then real="$(readlink "$RULES")"; rm "$RULES"; cp "$real" "$RULES"; fi
-  perl -pi -e 's/Absolute Mode ACTIVE by default/Absolute Mode OFF by default (enable per-session: say "absolute mode")/' "$RULES"
-  echo "Absolute Mode default: off (rules file detached from repo copy)"
+  for f in "$RULES" "$HOME/.claude/AGENT_RULES.md"; do
+    [ -f "$f" ] && perl -pi -e 's/Absolute Mode ACTIVE by default/Absolute Mode OFF by default (enable per-session: say "absolute mode")/' "$f"
+  done
+  echo "Absolute Mode default: off"
 else
   echo "Absolute Mode default: on (toggle per-session with \"normal mode\")"
 fi
