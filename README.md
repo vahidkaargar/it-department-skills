@@ -47,6 +47,9 @@ rulesfind "output mode"               # -> absolute-mode spec
 | `skills/pii-scrub/` | Redact secrets/PII from files before sharing |
 | `skills/remember/` | Save durable knowledge to agent memory deliberately |
 | `skills/tech-debt-tracker/` | Scan, score, and plan tech-debt remediation |
+| `skills/blindspot-check/` | Red-team a big decision against 95 cognitive biases before committing |
+| `skills/thiel-style-converter/` | Rewrite arguments in measured Zero-to-One strategic style (anti-fabrication built in) |
+| `skills/positioning-with-ekram/` | Product/category positioning operator — diagnose before copy, eval-tested |
 | `discovery/skills-catalog/` | `skillfind`/`rulesfind` CLI, index builder, optional localhost HTTP API |
 | `hooks/skills-discovery-guard.sh` | PreToolUse hook: denies `ls`/`find` on skill dirs (opt-in) |
 | `templates/.ai/` | Starter `.ai/context.md` + examples layout for the rules' context protocol |
@@ -73,6 +76,10 @@ Symlinks only — remove them and restore from the printed backup dir:
 - [caveman](https://github.com/JuliusBrussee/caveman) by Julius Brussee (MIT) —
   referenced as an optional companion, not vendored.
 - `skills/write-a-skill` builds on skill-authoring doctrine by Matt Pocock (MIT).
+- `skills/blindspot-check`, `skills/thiel-style-converter`, and
+  `skills/positioning-with-ekram` by
+  [Soheil Momeni](https://github.com/soheilmomeniii) (MIT) — vendored with
+  upstream LICENSE files; security-audited before inclusion.
 
 ## License
 
