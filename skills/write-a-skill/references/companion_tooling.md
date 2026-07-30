@@ -61,7 +61,7 @@ Original: [matt-pocock/skills/skills/productivity/write-a-skill](https://github.
 - **Matt Pocock — write-a-skill** (https://github.com/mattpocock/skills/, MIT, 2024) — the upstream source
 - **Anthropic — Skills documentation** (https://docs.claude.com/en/docs/agents/skills) — official guidance on skill structure
 - **Anthropic Engineering Blog — Skills patterns** (continuously updated) — patterns for skill authoring
-- **Karpathy, A. — "Software 3.0" + LLM coding pitfalls** (X.com posts 2024-2025) — discipline reference applied throughout this repo's karpathy-coder skill
+- **Karpathy, A. — "Software 3.0" + LLM coding pitfalls** (X.com posts 2024-2025) — discipline reference for writing deterministic, stdlib-only skill scripts
 - **Pareto principle applied to documentation** — concise = trustworthy; 80% of value in 20% of words
 - **Hyrum's Law** as applied to skill descriptions — once a description shape is observed, downstream agents depend on it
 - **Conway's Law as applied to skill libraries** — skill organization mirrors team responsibilities; progressive disclosure mirrors information needs across team boundaries

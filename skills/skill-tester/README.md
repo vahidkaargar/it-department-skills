@@ -15,36 +15,36 @@ The Skill Tester is a meta-skill that ensures quality and consistency across all
 ### Validate a Skill
 ```bash
 # Basic validation
-python scripts/skill_validator.py engineering/my-skill
+python scripts/skill_validator.py skills/my-skill
 
 # Validate against specific tier
-python scripts/skill_validator.py engineering/my-skill --tier POWERFUL --json
+python scripts/skill_validator.py skills/my-skill --tier POWERFUL --json
 ```
 
 ### Test Scripts
 ```bash
 # Test all scripts in a skill
-python scripts/script_tester.py engineering/my-skill
+python scripts/script_tester.py skills/my-skill
 
 # Test with custom timeout
-python scripts/script_tester.py engineering/my-skill --timeout 60 --json
+python scripts/script_tester.py skills/my-skill --timeout 60 --json
 ```
 
 ### Score Quality
 ```bash
 # Get quality assessment
-python scripts/quality_scorer.py engineering/my-skill
+python scripts/quality_scorer.py skills/my-skill
 
 # Detailed scoring with improvement suggestions
-python scripts/quality_scorer.py engineering/my-skill --detailed --json
+python scripts/quality_scorer.py skills/my-skill --detailed --json
 ```
 
 ## Components
 
 ### Scripts
-- **skill_validator.py** (700+ LOC) - Validates skill structure and compliance
-- **script_tester.py** (800+ LOC) - Tests script functionality and quality
-- **quality_scorer.py** (1100+ LOC) - Multi-dimensional quality assessment
+- **skill_validator.py** (~670 LOC) - Validates skill structure and compliance
+- **script_tester.py** (~730 LOC) - Tests script functionality and quality
+- **quality_scorer.py** (~1180 LOC) - Multi-dimensional quality assessment
 
 ### Reference Documentation
 - **skill-structure-specification.md** - Complete structural requirements
@@ -87,7 +87,7 @@ python scripts/quality_scorer.py engineering/my-skill --detailed --json
 name: Skill Quality Gate
 on:
   pull_request:
-    paths: ['engineering/**']
+    paths: ['skills/**']
     
 jobs:
   validate-skills:
@@ -100,10 +100,10 @@ jobs:
           python-version: '3.11'
       - name: Validate Skills
         run: |
-          for skill in $(git diff --name-only ${{ github.event.before }} | grep -E '^engineering/[^/]+/' | cut -d'/' -f1-2 | sort -u); do
-            python engineering/skill-tester/scripts/skill_validator.py $skill --json
-            python engineering/skill-tester/scripts/script_tester.py $skill
-            python engineering/skill-tester/scripts/quality_scorer.py $skill --minimum-score 75
+          for skill in $(git diff --name-only ${{ github.event.before }} | grep -E '^skills/[^/]+/' | cut -d'/' -f1-2 | sort -u); do
+            python skills/skill-tester/scripts/skill_validator.py $skill --json
+            python skills/skill-tester/scripts/script_tester.py $skill
+            python skills/skill-tester/scripts/quality_scorer.py $skill --minimum-score 75
           done
 ```
 
@@ -111,7 +111,7 @@ jobs:
 ```bash
 #!/bin/bash
 # .git/hooks/pre-commit
-python engineering/skill-tester/scripts/skill_validator.py engineering/my-skill --tier STANDARD
+python skills/skill-tester/scripts/skill_validator.py skills/my-skill --tier STANDARD
 if [ $? -ne 0 ]; then
     echo "Skill validation failed. Commit blocked."
     exit 1
@@ -153,23 +153,23 @@ python scripts/quality_scorer.py . --detailed
 ### Batch Validation
 ```bash
 # Validate all skills in repository
-find engineering/ -maxdepth 1 -type d | while read skill; do
+find skills/ -maxdepth 1 -type d | while read skill; do
   echo "Validating $skill..."
-  python engineering/skill-tester/scripts/skill_validator.py "$skill"
+  python skills/skill-tester/scripts/skill_validator.py "$skill"
 done
 ```
 
 ### Quality Monitoring
 ```bash
 # Generate quality report for all skills
-python engineering/skill-tester/scripts/quality_scorer.py engineering/ \
+python skills/skill-tester/scripts/quality_scorer.py skills/ \
   --batch --json > quality_report.json
 ```
 
 ### Custom Scoring Thresholds
 ```bash
 # Enforce minimum quality scores
-python scripts/quality_scorer.py engineering/my-skill --minimum-score 80
+python scripts/quality_scorer.py skills/my-skill --minimum-score 80
 # Exit code 0 = passed, 1 = failed, 2 = needs improvement
 ```
 
@@ -186,7 +186,7 @@ All scripts provide comprehensive error handling:
 ### Human-Readable
 ```
 === SKILL VALIDATION REPORT ===
-Skill: engineering/my-skill
+Skill: skills/my-skill
 Overall Score: 85.2/100 (B+)
 Tier Recommendation: STANDARD
 
@@ -203,7 +203,7 @@ SUGGESTIONS:
 ### JSON Format
 ```json
 {
-  "skill_path": "engineering/my-skill",
+  "skill_path": "skills/my-skill",
   "overall_score": 85.2,
   "letter_grade": "B+",
   "tier_recommendation": "STANDARD",
