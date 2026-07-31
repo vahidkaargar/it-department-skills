@@ -97,6 +97,22 @@ machines by `install.py`):
 Plain copies — remove them and restore from the printed backup dir:
 `~/.it-department-skills-backup/<timestamp>/`. Details: `docs/uninstall.md`.
 
+## Recommended companion skills
+
+Not part of this repo, not vendored — third-party Claude Code plugins that
+pair well with it. Install commands verified against Claude Code's
+[`/plugin` docs](https://code.claude.com/docs/en/discover-plugins.md); the
+`@marketplace-name` suffix is whatever that marketplace's own manifest
+declares, shown in the `marketplace add` command's own output if it ever
+differs from the table below.
+
+| Plugin | What it adds | Install | Source |
+|---|---|---|---|
+| [superpowers](https://github.com/anthropics/claude-plugins-official) | Brainstorming → TDD → systematic-debugging → writing-plans workflow discipline | `/plugin marketplace add anthropics/claude-plugins-official`<br>`/plugin install superpowers@claude-plugins-official` | `anthropics/claude-plugins-official` |
+| [ashlr](https://github.com/ashlrai/ashlr-plugin) | Token-efficient tool wrappers (read/edit/grep/bash) + cost tracking + multi-agent orchestration | `/plugin marketplace add ashlrai/ashlr-plugin`<br>`/plugin install ashlr@ashlr-marketplace` | `ashlrai/ashlr-plugin` |
+| [ecc](https://github.com/affaan-m/ECC) | 100+ language/framework reviewers, build-fixers, and workflow commands (React, Go, Rust, Django, Kotlin, etc.) | `/plugin marketplace add affaan-m/ECC`<br>`/plugin install ecc@ecc` | `affaan-m/ECC` |
+| [claude-mem](https://github.com/thedotmack/claude-mem) | Persistent cross-session memory — search past work, auto-capture, resume context | `/plugin marketplace add thedotmack/claude-mem`<br>`/plugin install claude-mem@thedotmack` | `thedotmack/claude-mem` |
+
 ## Credits
 
 - [caveman](https://github.com/JuliusBrussee/caveman) by Julius Brussee (MIT) —
