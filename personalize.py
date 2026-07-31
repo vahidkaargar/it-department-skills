@@ -171,6 +171,28 @@ def main():
     build_index = HOME / ".agents" / "skills-catalog" / "scripts" / "build-index.py"
     if build_index.is_file():
         subprocess.run([sys.executable, str(build_index), "--quiet"])
+
+    print("")
+    print("-- recommended companion plugins (optional, third-party) --")
+    print("Not part of this repo, not vendored — install via Claude Code's own")
+    print("/plugin manager if useful to you:")
+    print("")
+    print("superpowers: brainstorming -> TDD -> systematic-debugging -> writing-plans workflow")
+    print("  /plugin marketplace add anthropics/claude-plugins-official")
+    print("  /plugin install superpowers@claude-plugins-official")
+    print("")
+    print("ashlr: token-efficient read/edit/grep/bash wrappers + cost tracking")
+    print("  /plugin marketplace add ashlrai/ashlr-plugin")
+    print("  /plugin install ashlr@ashlr-marketplace")
+    print("")
+    print("ecc: 100+ language/framework reviewers, build-fixers, workflow commands")
+    print("  /plugin marketplace add affaan-m/ECC")
+    print("  /plugin install ecc@ecc")
+    print("")
+    print("claude-mem: persistent cross-session memory (search past work, auto-capture)")
+    print("  /plugin marketplace add thedotmack/claude-mem")
+    print("  /plugin install claude-mem@thedotmack")
+
     print("== done — open a new agent session to pick up changes ==")
 
 
