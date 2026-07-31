@@ -11,11 +11,14 @@ import subprocess
 import sys
 from pathlib import Path
 
+REPO_DIR = Path(__file__).resolve().parent
 HOME = Path.home()
 CONTEXT = HOME / ".ai" / "context.md"
 RULES = HOME / ".ai" / "rules.md"
 AGENT_RULES_COPY = HOME / ".claude" / "AGENT_RULES.md"
 CLAUDE_MD = HOME / ".claude" / "CLAUDE.md"
+GUARD_HOOK_SRC = REPO_DIR / "hooks" / "skills-discovery-guard.py"
+GUARD_HOOK_DST = HOME / ".claude" / "hooks" / "skills-discovery-guard.py"
 
 
 def ask(prompt: str, default: str = "") -> str:
@@ -109,6 +112,37 @@ def main():
                 fh.write("\n# Global agent rules (it-department-skills)\n")
                 fh.write(f"{snippet}\n")
             print(f"updated: {CLAUDE_MD}")
+
+    print("")
+    print("-- discovery-guard hook (optional) --")
+    print("Blocks agents from ls/find-ing skill dirs, forcing search-first discovery")
+    print("via skillfind. Off by default — this only toggles the hook FILE; you still")
+    print("register/remove it yourself in ~/.claude/settings.json (see docs/hooks.md).")
+    currently_installed = GUARD_HOOK_DST.is_file()
+    guard = ask(
+        "Install/keep the skills-discovery-guard hook file? (y/n)",
+        "y" if currently_installed else "n",
+    )
+    if guard.lower().startswith("y"):
+        if not GUARD_HOOK_SRC.is_file():
+            print(f"WARN: {GUARD_HOOK_SRC} not found — run this from inside the cloned repo")
+        else:
+            GUARD_HOOK_DST.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(GUARD_HOOK_SRC, GUARD_HOOK_DST)
+            try:
+                GUARD_HOOK_DST.chmod(GUARD_HOOK_DST.stat().st_mode | 0o111)
+            except OSError:
+                pass
+            print(f"installed: {GUARD_HOOK_DST}")
+            print("Register it in ~/.claude/settings.json (merge into hooks.PreToolUse):")
+            print('  "hooks": { "PreToolUse": [ { "matcher": "Bash", "hooks": [ { "type": "command",')
+            print('    "command": "python3 ~/.claude/hooks/skills-discovery-guard.py" } ] } ] }')
+    elif currently_installed:
+        GUARD_HOOK_DST.unlink()
+        print(f"removed: {GUARD_HOOK_DST}")
+        print("Remove its entry from ~/.claude/settings.json too if you registered one.")
+    else:
+        print("skipped — hook not installed")
 
     print("")
     print("-- rtk token-optimizer (optional) --")

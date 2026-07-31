@@ -27,6 +27,7 @@ def say(msg=""):
 def parse_args(argv):
     dry_run = False
     yes = False
+    with_guard_hook = False
     home_override = None
     i = 0
     while i < len(argv):
@@ -35,11 +36,15 @@ def parse_args(argv):
             dry_run = True
         elif a in ("--yes", "-y"):
             yes = True
+        elif a == "--with-guard-hook":
+            with_guard_hook = True
         elif a in ("--help", "-h"):
-            say("usage: install.py [--dry-run] [--yes]")
-            say("  --dry-run   print actions without changing anything")
-            say("  --yes       skip confirmation prompts")
-            say("  --home PATH internal: override home dir (for CI/testing)")
+            say("usage: install.py [--dry-run] [--yes] [--with-guard-hook]")
+            say("  --dry-run         print actions without changing anything")
+            say("  --yes             skip confirmation prompts")
+            say("  --with-guard-hook install the opt-in skills-discovery-guard hook")
+            say("                    non-interactively (ignored without --yes)")
+            say("  --home PATH       internal: override home dir (for CI/testing)")
             sys.exit(0)
         elif a == "--home":
             i += 1
@@ -51,10 +56,10 @@ def parse_args(argv):
             print(f"unknown option: {a} (see --help)", file=sys.stderr)
             sys.exit(1)
         i += 1
-    return dry_run, yes, home_override
+    return dry_run, yes, with_guard_hook, home_override
 
 
-DRY_RUN, YES, HOME_OVERRIDE = parse_args(sys.argv[1:])
+DRY_RUN, YES, WITH_GUARD_HOOK, HOME_OVERRIDE = parse_args(sys.argv[1:])
 HOME = Path(HOME_OVERRIDE) if HOME_OVERRIDE else Path.home()
 BACKUP_DIR = HOME / ".it-department-skills-backup" / datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
@@ -237,7 +242,7 @@ def main():
     say("-- discovery-guard hook (optional) --")
     say("Blocks agents from ls/find-ing skill dirs, forcing search-first discovery.")
     if YES:
-        install_guard = True
+        install_guard = WITH_GUARD_HOOK
     else:
         try:
             ans = input("Install skills-discovery-guard PreToolUse hook for Claude Code? [y/N] ")
@@ -255,7 +260,7 @@ def main():
         say("(installer never edits settings.json for you — merge the snippet manually,")
         say(" full example: docs/hooks.md)")
     else:
-        say("skipped guard hook")
+        say("skipped guard hook (opt-in only — pass --with-guard-hook with --yes to install non-interactively)")
 
     # 5. Caveman mode (optional, third-party) -------------------------------
     say("")

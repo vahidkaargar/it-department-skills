@@ -7,7 +7,11 @@ skill directories (`ls`/`find`/`tree` on `~/.claude/skills`, `~/.agents`,
 `~/.cursor/skills`, `~/.skills-archive`, plugin caches), forcing agents through
 `skillfind`/`rulesfind` instead. Catalog tooling is allow-listed.
 
-`install.py` copies the hook file; register it yourself in `~/.claude/settings.json`:
+`install.py` prompts before installing it (default no); pass `--with-guard-hook`
+alongside `--yes` to install it non-interactively. `personalize.py` can also
+install or remove the hook file later without re-running `install.py`.
+
+Either way, register it yourself in `~/.claude/settings.json`:
 
 ```json
 {
