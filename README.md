@@ -1,6 +1,7 @@
 # it-department-skills
 
 [![CI](https://github.com/vahidkaargar/it-department-skills/actions/workflows/ci.yml/badge.svg)](https://github.com/vahidkaargar/it-department-skills/actions/workflows/ci.yml)
+[![skills.sh](https://skills.sh/b/vahidkaargar/it-department-skills)](https://skills.sh/vahidkaargar/it-department-skills)
 
 Battle-tested global rules, portable skills, and a token-efficient skill-discovery
 system for AI coding agents (Claude Code, Cursor, Codex, Copilot — anything with a
@@ -32,6 +33,13 @@ python3 personalize.py         # fill in your machine/stack, toggle output modes
 Installer and personalizer are pure-stdlib Python 3 — no bash/perl/shellcheck
 required, so this works identically on macOS, Linux, and Windows (use `python`
 instead of `python3` on Windows if that's how it's aliased on your machine).
+
+Or install individual skills via the [skills.sh](https://skills.sh/vahidkaargar/it-department-skills)
+ecosystem CLI:
+
+```bash
+npx skills add vahidkaargar/it-department-skills --skill skills-discovery
+```
 
 Then in any agent session:
 
