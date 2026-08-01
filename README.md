@@ -97,7 +97,7 @@ machines by `install.py`):
 Plain copies — remove them and restore from the printed backup dir:
 `~/.it-department-skills-backup/<timestamp>/`. Details: `docs/uninstall.md`.
 
-## Recommended companion skills
+## Recommended companion plugins
 
 Not part of this repo, not vendored — third-party Claude Code plugins that
 pair well with it. Install commands verified against Claude Code's
